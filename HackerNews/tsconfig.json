@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES5",
+    "module": "CommonJS",
+    "alwaysStrict": true,
+    "noImplicitAny": true, // any 타입을 사용하지 못하게 하는 설정
+    "noImplicitThis": true, // any 타입인 this를 사용하지 못하게 하는 설정
+    "sourceMap": true, // 개발 환경과 실행 환경을 일치시킬 수 있는 설정
+    "downlevelIteration": true // 자바스크립트 이전 버전으로 변환 가능하도록 하는 설정
+  }
+}
