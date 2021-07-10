@@ -37,36 +37,57 @@ const store: Store = {
   feeds: [],
 };
 
-// getData 클래스 변환
+// targetClass로 제공된 class에 baseClasses로 제공된 n개의 class 기능들을 합성시킴
+function applyApiMixins(targetClass: any, baseClasses: any[]): void {
+  baseClasses.forEach((baseClass) => {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach((name) => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        baseClass.prototype,
+        name,
+      );
+
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, name, descriptor);
+      }
+    });
+  });
+}
+
 class Api {
-  url: string;
-  ajax: XMLHttpRequest;
+  getRequest<AjaxResponse>(url: string): AjaxResponse {
+    const ajax = new XMLHttpRequest();
+    ajax.open('GET', url, false);
+    ajax.send();
 
-  constructor(url: string) {
-    this.url = url;
-    this.ajax = new XMLHttpRequest();
-  }
-
-  // class 밖에서 호출 불가능
-  protected getRequest<AjaxResponse>(): AjaxResponse {
-    this.ajax.open('GET', this.url, false);
-    this.ajax.send();
-
-    return JSON.parse(this.ajax.response);
+    return JSON.parse(ajax.response);
   }
 }
 
-class NewsFeedApi extends Api {
+class NewsFeedApi {
   getData(): NewsFeed[] {
-    return this.getRequest<NewsFeed[]>();
+    return this.getRequest<NewsFeed[]>(NEWS_URL);
   }
 }
 
-class NewsDetailApi extends Api {
-  getData(): NewsDetail {
-    return this.getRequest<NewsDetail>();
+class NewsDetailApi {
+  getData(id: string): NewsDetail {
+    return this.getRequest<NewsDetail>(CONTENT_URL.replace('@id', id));
   }
 }
+
+// 2개의 class를 합성시킬 것이라고 타입스크립트 컴파일러에게 알려주는 코드
+interface NewsFeedApi extends Api {}
+interface NewsDetailApi extends Api {}
+
+/* 
+[ applyApiMixins 함수(class의 extends 역할과 비슷) 사용 이유 ]
+- extends 상속 방법은 코드에 적시되어야 하는 상속 방법이므로,
+  상속의 관계를 바꾸고 싶으면 코드 자체를 바꿔야 한다 (관계의 유연성이 낮음)
+- class의 extends는 다중 상속을 지원하지 않는다
+  (applyApiMixins 함수를 이용하여 상위 class를 n개 받을 수 있는 구조를 만들 수 있음)
+*/
+applyApiMixins(NewsFeedApi, [Api]);
+applyApiMixins(NewsDetailApi, [Api]);
 
 function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
   for (let i = 0; i < feeds.length; i++) {
@@ -85,7 +106,7 @@ function updateView(html: string): void {
 }
 
 function newsFeed(): void {
-  const api = new NewsFeedApi(NEWS_URL);
+  const api = new NewsFeedApi();
   let newsFeed: NewsFeed[] = store.feeds;
   const newsList = [];
   let template = `
@@ -158,8 +179,8 @@ function newsFeed(): void {
 
 function newsDetail(): void {
   const id = location.hash.substr(7);
-  const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
-  const newsContent = api.getData();
+  const api = new NewsDetailApi();
+  const newsContent = api.getData(id);
   let template = `
     <div class="bg-gray-600 min-h-screen pb-8">
       <div class="bg-white text-xl">
