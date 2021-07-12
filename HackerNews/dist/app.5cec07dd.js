@@ -294,13 +294,23 @@ var Api = /*#__PURE__*/function () {
     this.ajax = new XMLHttpRequest();
     this.url = url;
   }
+  /*
+  [ api 연동 비동기 처리하기: ajax.addEventListener('load', () => {}) ]
+  UI쪽에서 getData를 호출했을 때 getData의 반환값으로 넘겨줄
+  JSON.parse 객체가 없기 때문에 getRequest가 콜백함수(cb)를 인자로 받아서 전달한다
+  */
+
 
   _createClass(Api, [{
     key: "getRequest",
-    value: function getRequest() {
-      this.ajax.open('GET', this.url, false);
+    value: function getRequest(cb) {
+      var _this = this;
+
+      this.ajax.open('GET', this.url);
+      this.ajax.addEventListener('load', function () {
+        cb(JSON.parse(_this.ajax.response));
+      });
       this.ajax.send();
-      return JSON.parse(this.ajax.response);
     }
   }]);
 
@@ -318,12 +328,13 @@ var NewsFeedApi = /*#__PURE__*/function (_Api) {
     _classCallCheck(this, NewsFeedApi);
 
     return _super.call(this, url);
-  }
+  } // view에서 콜백을 인자로 받아서 getRequest로 넘겨준다
+
 
   _createClass(NewsFeedApi, [{
     key: "getData",
-    value: function getData() {
-      return this.getRequest();
+    value: function getData(cb) {
+      return this.getRequest(cb);
     }
   }]);
 
@@ -345,8 +356,8 @@ var NewsDetailApi = /*#__PURE__*/function (_Api2) {
 
   _createClass(NewsDetailApi, [{
     key: "getData",
-    value: function getData() {
-      return this.getRequest();
+    value: function getData(cb) {
+      return this.getRequest(cb);
     }
   }]);
 
@@ -420,23 +431,23 @@ var NewsDetailView = /*#__PURE__*/function (_view_1$default) {
 
     _this.render = function (id) {
       var api = new api_1.NewsDetailApi(config_1.CONTENT_URL.replace('@id', id));
+      api.getData(function (data) {
+        var title = data.title,
+            content = data.content,
+            comments = data.comments;
 
-      var _api$getData = api.getData(),
-          title = _api$getData.title,
-          content = _api$getData.content,
-          comments = _api$getData.comments;
+        _this.store.makeRead(Number(id));
 
-      _this.store.makeRead(Number(id));
+        _this.setTemplateData('currentPage', _this.store.currentPage.toString());
 
-      _this.setTemplateData('currentPage', _this.store.currentPage.toString());
+        _this.setTemplateData('title', title);
 
-      _this.setTemplateData('title', title);
+        _this.setTemplateData('content', content);
 
-      _this.setTemplateData('content', content);
+        _this.setTemplateData('comments', _this.makeComment(comments));
 
-      _this.setTemplateData('comments', _this.makeComment(comments));
-
-      _this.updateView();
+        _this.updateView();
+      });
     };
 
     _this.store = store;
@@ -513,11 +524,35 @@ var NewsFeedView = /*#__PURE__*/function (_view_1$default) {
     _classCallCheck(this, NewsFeedView);
 
     _this = _super.call(this, containerId, template);
+    /*
+    router가 render 함수를 호출할 때 생성자에서 호출했던
+    데이터의 응답이 처리됐다는 보장이 없기 때문에 (호출 순서: 생성자 → api)
+    생성자에서 호출하던 api를 render로 옮겨줘야 한다
+    */
 
     _this.render = function () {
       var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '1';
       _this.store.currentPage = Number(page);
 
+      if (!_this.store.hasFeeds) {
+        _this.api.getData(function (feeds) {
+          _this.store.setFeeds(feeds);
+
+          _this.renderView();
+        });
+      }
+
+      _this.renderView();
+    };
+    /*
+    [ UI 업데이트 코드(for문)를 함수로 분리시켜야 하는 이유 ]
+    1. 위의 getData에 전달한 함수도 콜백 함수이므로 처리 여부와 상관없이 for문이 실행되고
+       html을 만들어내는 코드에 필요한 데이터가 없기 때문에 작동하지 못한다
+    2. 페이징을 할 때는 api 호출을 하지 않기 때문에 for문을 콜백 함수 안에 넣어도 작동하지 못한다
+    */
+
+
+    _this.renderView = function () {
       for (var i = (_this.store.currentPage - 1) * 10; i < _this.store.currentPage * 10; i++) {
         var _this$store$getFeed = _this.store.getFeed(i),
             id = _this$store$getFeed.id,
@@ -542,11 +577,6 @@ var NewsFeedView = /*#__PURE__*/function (_view_1$default) {
 
     _this.store = store;
     _this.api = new api_1.NewsFeedApi(config_1.NEWS_URL);
-
-    if (!_this.store.hasFeeds) {
-      _this.store.setFeeds(_this.api.getData());
-    }
-
     return _this;
   }
 

@@ -1,6 +1,6 @@
 import View from '../core/view';
 import { NewsFeedApi } from '../core/api';
-import { NewsStore } from '../types';
+import { NewsFeed, NewsStore } from '../types';
 import { NEWS_URL } from '../config';
 
 const template = `
@@ -37,15 +37,34 @@ export default class NewsFeedView extends View {
 
     this.store = store;
     this.api = new NewsFeedApi(NEWS_URL);
-
-    if (!this.store.hasFeeds) {
-      this.store.setFeeds(this.api.getData());
-    }
   }
 
+  /*
+  router가 render 함수를 호출할 때 생성자에서 호출했던
+  데이터의 응답이 처리됐다는 보장이 없기 때문에 (호출 순서: 생성자 → api)
+  생성자에서 호출하던 api를 render로 옮겨줘야 한다
+  */
   render = (page: string = '1'): void => {
     this.store.currentPage = Number(page);
 
+    if (!this.store.hasFeeds) {
+      this.api.getData((feeds: NewsFeed[]) => {
+        this.store.setFeeds(feeds);
+        this.renderView();
+      });
+    }
+
+    this.renderView();
+  };
+
+  /*
+  [ UI 업데이트 코드(for문)를 함수로 분리시켜야 하는 이유 ]
+  1. 위의 getData에 전달한 함수도 콜백 함수이므로 처리 여부와 상관없이 for문이 실행되고
+     html을 만들어내는 코드에 필요한 데이터가 없기 때문에 작동하지 못한다
+  2. 페이징을 할 때는 api 호출을 하지 않기 때문에 for문을 콜백 함수 안에 넣어도 작동하지 못한다
+  */
+
+  renderView = () => {
     for (
       let i = (this.store.currentPage - 1) * 10;
       i < this.store.currentPage * 10;
