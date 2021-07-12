@@ -1,26 +1,30 @@
 import { NewsFeed, NewsDetail } from '../types';
 
 export default class Api {
-  ajax: XMLHttpRequest;
+  xhr: XMLHttpRequest;
   url: string;
 
   constructor(url: string) {
-    this.ajax = new XMLHttpRequest();
+    this.xhr = new XMLHttpRequest();
     this.url = url;
   }
 
-  /* 
-  [ api 연동 비동기 처리하기: ajax.addEventListener('load', () => {}) ]
-  UI쪽에서 getData를 호출했을 때 getData의 반환값으로 넘겨줄 
-  JSON.parse 객체가 없기 때문에 getRequest가 콜백함수(cb)를 인자로 받아서 전달한다
-  */
-  getRequest<AjaxResponse>(cb: (data: AjaxResponse) => void): void {
-    this.ajax.open('GET', this.url);
-    this.ajax.addEventListener('load', () => {
-      cb(JSON.parse(this.ajax.response) as AjaxResponse);
+  getRequestWithXHR<AjaxResponse>(cb: (data: AjaxResponse) => void): void {
+    this.xhr.open('GET', this.url);
+    this.xhr.addEventListener('load', () => {
+      cb(JSON.parse(this.xhr.response) as AjaxResponse);
     });
 
-    this.ajax.send();
+    this.xhr.send();
+  }
+
+  getRequestWithPromise<AjaxResponse>(cb: (data: AjaxResponse) => void): void {
+    fetch(this.url)
+      .then((response) => response.json()) // 비동기적으로 JSON을 객체화
+      .then(cb)
+      .catch(() => {
+        console.error('데이터를 불러오지 못했습니다.');
+      });
   }
 }
 
@@ -29,9 +33,12 @@ export class NewsFeedApi extends Api {
     super(url);
   }
 
-  // view에서 콜백을 인자로 받아서 getRequest로 넘겨준다
-  getData(cb: (data: NewsFeed[]) => void): void {
-    return this.getRequest<NewsFeed[]>(cb);
+  getDataWithXHR(cb: (data: NewsFeed[]) => void): void {
+    return this.getRequestWithXHR<NewsFeed[]>(cb);
+  }
+
+  getDataWithPromise(cb: (data: NewsFeed[]) => void): void {
+    return this.getRequestWithPromise<NewsFeed[]>(cb);
   }
 }
 
@@ -40,7 +47,11 @@ export class NewsDetailApi extends Api {
     super(url);
   }
 
-  getData(cb: (data: NewsDetail) => void): void {
-    return this.getRequest<NewsDetail>(cb);
+  getDataWithXHR(cb: (data: NewsDetail) => void): void {
+    return this.getRequestWithXHR<NewsDetail>(cb);
+  }
+
+  getDataWithPromise(cb: (data: NewsDetail) => void): void {
+    return this.getRequestWithXHR<NewsDetail>(cb);
   }
 }

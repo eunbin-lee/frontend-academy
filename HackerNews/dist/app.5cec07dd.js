@@ -291,26 +291,30 @@ var Api = /*#__PURE__*/function () {
   function Api(url) {
     _classCallCheck(this, Api);
 
-    this.ajax = new XMLHttpRequest();
+    this.xhr = new XMLHttpRequest();
     this.url = url;
   }
-  /*
-  [ api 연동 비동기 처리하기: ajax.addEventListener('load', () => {}) ]
-  UI쪽에서 getData를 호출했을 때 getData의 반환값으로 넘겨줄
-  JSON.parse 객체가 없기 때문에 getRequest가 콜백함수(cb)를 인자로 받아서 전달한다
-  */
-
 
   _createClass(Api, [{
-    key: "getRequest",
-    value: function getRequest(cb) {
+    key: "getRequestWithXHR",
+    value: function getRequestWithXHR(cb) {
       var _this = this;
 
-      this.ajax.open('GET', this.url);
-      this.ajax.addEventListener('load', function () {
-        cb(JSON.parse(_this.ajax.response));
+      this.xhr.open('GET', this.url);
+      this.xhr.addEventListener('load', function () {
+        cb(JSON.parse(_this.xhr.response));
       });
-      this.ajax.send();
+      this.xhr.send();
+    }
+  }, {
+    key: "getRequestWithPromise",
+    value: function getRequestWithPromise(cb) {
+      fetch(this.url).then(function (response) {
+        return response.json();
+      }) // 비동기적으로 JSON을 객체화
+      .then(cb).catch(function () {
+        console.error('데이터를 불러오지 못했습니다.');
+      });
     }
   }]);
 
@@ -328,13 +332,17 @@ var NewsFeedApi = /*#__PURE__*/function (_Api) {
     _classCallCheck(this, NewsFeedApi);
 
     return _super.call(this, url);
-  } // view에서 콜백을 인자로 받아서 getRequest로 넘겨준다
-
+  }
 
   _createClass(NewsFeedApi, [{
-    key: "getData",
-    value: function getData(cb) {
-      return this.getRequest(cb);
+    key: "getDataWithXHR",
+    value: function getDataWithXHR(cb) {
+      return this.getRequestWithXHR(cb);
+    }
+  }, {
+    key: "getDataWithPromise",
+    value: function getDataWithPromise(cb) {
+      return this.getRequestWithPromise(cb);
     }
   }]);
 
@@ -355,9 +363,14 @@ var NewsDetailApi = /*#__PURE__*/function (_Api2) {
   }
 
   _createClass(NewsDetailApi, [{
-    key: "getData",
-    value: function getData(cb) {
-      return this.getRequest(cb);
+    key: "getDataWithXHR",
+    value: function getDataWithXHR(cb) {
+      return this.getRequestWithXHR(cb);
+    }
+  }, {
+    key: "getDataWithPromise",
+    value: function getDataWithPromise(cb) {
+      return this.getRequestWithXHR(cb);
     }
   }]);
 
@@ -431,7 +444,7 @@ var NewsDetailView = /*#__PURE__*/function (_view_1$default) {
 
     _this.render = function (id) {
       var api = new api_1.NewsDetailApi(config_1.CONTENT_URL.replace('@id', id));
-      api.getData(function (data) {
+      api.getDataWithPromise(function (data) {
         var title = data.title,
             content = data.content,
             comments = data.comments;
@@ -535,7 +548,7 @@ var NewsFeedView = /*#__PURE__*/function (_view_1$default) {
       _this.store.currentPage = Number(page);
 
       if (!_this.store.hasFeeds) {
-        _this.api.getData(function (feeds) {
+        _this.api.getDataWithPromise(function (feeds) {
           _this.store.setFeeds(feeds);
 
           _this.renderView();
