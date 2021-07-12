@@ -10,13 +10,14 @@ export default abstract class View {
     if (!containerElement) {
       throw '최상위 컨테이너가 없어 UI를 진행하지 못합니다.';
     }
+
     this.container = containerElement;
     this.template = template;
     this.renderTemplate = template;
     this.htmlList = [];
   }
 
-  updateView(): void {
+  protected updateView(): void {
     this.container.innerHTML = this.renderTemplate;
     this.renderTemplate = this.template;
   }
@@ -39,5 +40,5 @@ export default abstract class View {
     this.htmlList = [];
   }
 
-  abstract render(): void; // 추상 메소드 (자식 class에서 반드시 구현해야 하는 메소드)
+  abstract render(...params: string[]): void;
 }
