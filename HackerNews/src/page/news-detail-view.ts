@@ -1,7 +1,6 @@
 import View from '../core/view';
 import { NewsDetailApi } from '../core/api';
-import { NewsComment, NewsDetail, NewsStore } from '../types';
-import { CONTENT_URL } from '../config';
+import { NewsComment, NewsStore } from '../types';
 
 const template = `
     <div class="bg-gray-600 min-h-screen pb-8">
@@ -41,19 +40,19 @@ export default class NewsDetailView extends View {
     this.store = store;
   }
 
-  render = (id: string): void => {
-    const api = new NewsDetailApi(CONTENT_URL.replace('@id', id));
-    api.getDataWithPromise((data: NewsDetail) => {
-      const { title, content, comments } = data;
+  // async 함수는 Promise를 리턴하지 않더라도 리턴에 Promise로 감싸줘야 한다
+  render = async (id: string): Promise<void> => {
+    const api = new NewsDetailApi(id);
 
-      this.store.makeRead(Number(id));
-      this.setTemplateData('currentPage', this.store.currentPage.toString());
-      this.setTemplateData('title', title);
-      this.setTemplateData('content', content);
-      this.setTemplateData('comments', this.makeComment(comments));
+    const { title, content, comments } = await api.getData();
 
-      this.updateView();
-    });
+    this.store.makeRead(Number(id));
+    this.setTemplateData('currentPage', this.store.currentPage.toString());
+    this.setTemplateData('title', title);
+    this.setTemplateData('content', content);
+    this.setTemplateData('comments', this.makeComment(comments));
+
+    this.updateView();
   };
 
   private makeComment(comments: NewsComment[]): string {

@@ -1,57 +1,43 @@
+import { NEWS_URL, CONTENT_URL } from '../config';
 import { NewsFeed, NewsDetail } from '../types';
 
 export default class Api {
-  xhr: XMLHttpRequest;
   url: string;
 
   constructor(url: string) {
-    this.xhr = new XMLHttpRequest();
     this.url = url;
   }
 
-  getRequestWithXHR<AjaxResponse>(cb: (data: AjaxResponse) => void): void {
-    this.xhr.open('GET', this.url);
-    this.xhr.addEventListener('load', () => {
-      cb(JSON.parse(this.xhr.response) as AjaxResponse);
-    });
+  /*
+  [ async ]
+  - 비동기 함수로 전환
+  - Promise 객체를 리턴하는 함수
 
-    this.xhr.send();
-  }
-
-  getRequestWithPromise<AjaxResponse>(cb: (data: AjaxResponse) => void): void {
-    fetch(this.url)
-      .then((response) => response.json()) // 비동기적으로 JSON을 객체화
-      .then(cb)
-      .catch(() => {
-        console.error('데이터를 불러오지 못했습니다.');
-      });
+  [ async, await ]
+  내부적으로는 Promise 베이스로 작동하지만 코드 상으로는 동기 코드처럼 쓸 수 있다
+  */
+  async request<AjaxResponse>(): Promise<AjaxResponse> {
+    const response = await fetch(this.url);
+    return (await response.json()) as AjaxResponse;
   }
 }
 
 export class NewsFeedApi extends Api {
-  constructor(url: string) {
-    super(url);
+  constructor() {
+    super(NEWS_URL);
   }
 
-  getDataWithXHR(cb: (data: NewsFeed[]) => void): void {
-    return this.getRequestWithXHR<NewsFeed[]>(cb);
-  }
-
-  getDataWithPromise(cb: (data: NewsFeed[]) => void): void {
-    return this.getRequestWithPromise<NewsFeed[]>(cb);
+  async getData(): Promise<NewsFeed[]> {
+    return this.request<NewsFeed[]>();
   }
 }
 
 export class NewsDetailApi extends Api {
-  constructor(url: string) {
-    super(url);
+  constructor(id: string) {
+    super(CONTENT_URL.replace('@id', id));
   }
 
-  getDataWithXHR(cb: (data: NewsDetail) => void): void {
-    return this.getRequestWithXHR<NewsDetail>(cb);
-  }
-
-  getDataWithPromise(cb: (data: NewsDetail) => void): void {
-    return this.getRequestWithXHR<NewsDetail>(cb);
+  async getData(): Promise<NewsDetail> {
+    return this.request<NewsDetail>();
   }
 }
