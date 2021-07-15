@@ -11,7 +11,7 @@ declare global {
 }
 
 const app = new App('#root', {
-  title: 'Sign up',
+  title: 'JavaScript & TypeScript Essential Chapter 5 - Sign up',
 });
 
 app.render();
