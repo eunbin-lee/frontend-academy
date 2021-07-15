@@ -5,7 +5,7 @@ import {
   MinimumLengthLimit,
 } from './constant';
 import { AnyObject } from './types';
-import { PasswordField, TextField } from './views';
+import { PasswordField, TextField, AddressField } from './views';
 
 export default class App {
   template = template;
@@ -55,6 +55,11 @@ export default class App {
       placeholder: '비밀번호를 입력해 주세요',
     });
 
+    const addressField = new AddressField('#optional-fields', {
+      id: 'address',
+      label: '배송지 주소',
+    });
+
     idField.addValidateRule(CantContainWhitespace);
     idField.addValidateRule(CantStartNumber);
     idField.addValidateRule(MinimumLengthLimit(3));
@@ -65,6 +70,7 @@ export default class App {
     this.fields.push(idField);
     this.fields.push(emailField);
     this.fields.push(passwordField);
+    this.fields.push(addressField);
   };
 
   private validFieldMonitor = () => {
