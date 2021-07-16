@@ -19,6 +19,7 @@ type Props = {
   strong?: StrongLevel;
 };
 
+// 튜플
 const StrongMessage: [string, string, string, string] = [
   '금지된 수준',
   '심각한 수준',

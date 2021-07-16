@@ -26,3 +26,9 @@ const template = `
 `;
 
 export default window.Handlebars.compile(template);
+/* 
+window의 Handlebars의 컴파일러에게 template을 넘겨주어
+Handlebars의 컴파일 메소드가 리턴한 함수를 export한다.
+app.ts에서 export된 Handlerbars template을 가지고
+데이터를 주입하여 최종적인 HTML을 만들게 된다.
+*/

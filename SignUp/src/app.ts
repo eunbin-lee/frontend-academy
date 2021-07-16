@@ -9,9 +9,9 @@ import { PasswordField, TextField, AddressField } from './views';
 
 export default class App {
   template = template;
-  data: AnyObject;
+  data: AnyObject; // template을 렌더링하기 위해선 data를 주입하여 최종 HTML을 만든다
   container: HTMLElement;
-  fields: AnyObject[];
+  fields: AnyObject[]; // 개별 input 요소들이 클래스로 구성돼있기 때문에 각각의 인스턴스를 만들어서 담아둔다
   active: boolean = false;
 
   constructor(container: string, data: AnyObject = {}) {
@@ -103,6 +103,11 @@ export default class App {
     console.log(submitData);
   };
 
+  /* 
+  [ render 함수 ]
+  - template에 data를 넣어 최종적인 HTML을 만든 후 container에 붙이는 역할 
+  - UI를 업데이트 하는 역할
+  */
   public render = () => {
     this.container.innerHTML = this.template(this.data);
     this.fields.forEach((field) => {

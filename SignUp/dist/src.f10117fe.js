@@ -233,11 +233,12 @@ function () {
     var _this = this;
 
     this.template = text_field_template_1.default;
-    this.updated = false;
+    this.updated = false; // 사용자가 최초의 입력을 했는지 안했는지를 체크
+
     this.validateRules = [];
 
     this.validate = function () {
-      var target = _this.data.text ? _this.data.text.trim() : '';
+      var target = _this.data.text ? _this.data.text.trim() : ''; // 사용자가 입력한 값
 
       var invalidateRules = _this.validateRules.filter(function (validateRule) {
         return validateRule.rule.test(target) !== validateRule.match;
@@ -250,12 +251,14 @@ function () {
       var isInvalid = _this.validate();
 
       if (_this.updated) {
+        // 최초의 입력값이 있을 때
         return __assign(__assign({}, _this.data), {
           updated: _this.updated,
           valid: !isInvalid,
           validateMessage: !!isInvalid ? isInvalid.message : ''
         });
       } else {
+        // 최초의 입력값이 없을 때
         return __assign(__assign({}, _this.data), {
           updated: _this.updated,
           valid: true,
@@ -286,9 +289,18 @@ function () {
     this.update = function () {
       var container = document.querySelector("#field-" + _this.data.id);
       var docFrag = document.createElement('div');
+      /*
+      [ dogFrag 상수를 사용하는 이유 ]
+      컴포넌트의 상위 요소(container)에 이벤트 핸들러를 적용시켰기 때문에
+      기존의 container UI를 유지하면서 container의 안쪽만 바꿔야 한다.
+                innerHTML로 새로운 UI로 업데이트될 때는 핸들러 자체도 사라지게 되므로
+      부모에게 이벤트 핸들러를 걸고 자식 요소를 업데이트 시키는 방식으로 구현하는 것이 효율적이다.
+      */
+
       docFrag.innerHTML = _this.template(_this.buildData());
       container.innerHTML = docFrag.children[0].innerHTML;
-    };
+    }; // 1개의 항목에 N개의 벨리데이터 설정
+
 
     this.addValidateRule = function (rule) {
       _this.validateRules.push(rule);
@@ -302,6 +314,7 @@ function () {
       var container = document.querySelector(_this.container);
 
       if (append) {
+        // 추가할 text field가 있다면
         var divFragment = document.createElement('div');
         divFragment.innerHTML = _this.template(_this.buildData());
         container.appendChild(divFragment.children[0]);
@@ -393,7 +406,8 @@ var StrongLevel;
   StrongLevel[StrongLevel["Light"] = 1] = "Light";
   StrongLevel[StrongLevel["Medium"] = 2] = "Medium";
   StrongLevel[StrongLevel["Havey"] = 3] = "Havey";
-})(StrongLevel || (StrongLevel = {}));
+})(StrongLevel || (StrongLevel = {})); // 튜플
+
 
 var StrongMessage = ['금지된 수준', '심각한 수준', '보통 수준', '강력한 암호'];
 var DefaultProps = {
@@ -690,6 +704,15 @@ Object.defineProperty(exports, "AddressField", {
     return __importDefault(address_field_1).default;
   }
 });
+/*
+해당 디렉토리의 파일 구성이 바뀌면 import하는 파일에서 매번 코드를 바꿔야 하기 때문에
+특정한 디렉토리 하위의 index.ts 파일을 생성하고 하위 디렉토리의 클래스들을 export하여 중개를 해주는 코드
+
+import하는 파일에서는 해당 디렉토리만 지정해놓고 사용할 타입이나 클래스만 지정을 하면
+해당 타입이나 클래스가 어디 위치에 있는지 신경쓰지 않고 사용할 수 있다.
+
+ex. import { PasswordField, TextField, AddressField } from './views';
+*/
 },{"./text-field":"src/views/text-field.ts","./password-field":"src/views/password-field.ts","./address-field":"src/views/address-field.ts"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
@@ -813,6 +836,12 @@ function () {
 
       console.log(submitData);
     };
+    /*
+    [ render 함수 ]
+    - template에 data를 넣어 최종적인 HTML을 만든 후 container에 붙이는 역할
+    - UI를 업데이트 하는 역할
+    */
+
 
     this.render = function () {
       _this.container.innerHTML = _this.template(_this.data);

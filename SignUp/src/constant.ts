@@ -19,7 +19,7 @@ export const CantStartNumber: ValidateRule = {
 };
 
 export const MinimumLengthLimit = (limit: number): ValidateRule => ({
-  rule: new RegExp(`(.){${limit}}`),
+  rule: new RegExp(`(.){${limit}}`), // 입력받은 수에 맞춰 데이터를 확인해야 하기 때문에 정규식 리터럴이 아닌 문자열로만 표현할 수 있는 RegExp 함수를 사용
   match: true,
   message: `최소한 ${limit}글자 이상이어야 합니다.`,
 });
