@@ -41,7 +41,7 @@ export default class Login {
 
     const loginData = this.#fields
       .map((field) => ({ [field.name]: field.value }))
-      .reduce((a, b) => ({ ...a, ...b }, {}));
+      .reduce((a, b) => ({ ...a, ...b }), {});
 
     axios
       .post('/api/authentication', loginData)
@@ -64,7 +64,7 @@ export default class Login {
         location.href = '/#/profile';
       })
       .catch((error) => {
-        this.#loginFail = ture;
+        this.#loginFail = true;
         this.render();
       });
   };

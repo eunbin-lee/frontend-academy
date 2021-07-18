@@ -11,7 +11,9 @@ app.use(morgan('dev'));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
+// 사용자의 프로필 정보를 반환해주는 API
 app.get('/api/user/:id', (req, res) => {
+  // 토큰이 없을 경우 에러 처리
   if (!req.haeders['token']) {
     return res.status(403).send({
       status: 'Error',
@@ -42,7 +44,9 @@ app.get('/api/user/:id', (req, res) => {
     });
 });
 
+// 사용자가 작성한 글의 목록을 반환해주는 API
 app.get('/api/user/:id/posts', (req, res) => {
+  // 토큰이 없을 경우 에러 처리
   if (!req.headers['token']) {
     return res.status(403).send({
       status: 'Error',
@@ -70,7 +74,7 @@ app.post('/api/authentication', (req, res) => {
       status: 'OK',
       result: {
         id: Math.floor(Math.random() * 10),
-        token: v4(),
+        token: v4(), // 클라이언트는 로그인 이후 다른 API를 호출할 때 항상 정보를 추가하여 전달
       },
     });
   } else {

@@ -22,11 +22,11 @@ export default class CoreField {
   validate = () => {
     const target = this.data.text ? this.data.text.trim() : '';
 
-    const invalidateRule = this.validateRules.filter(
+    const invalidateRules = this.validateRules.filter(
       (validateRule) => validateRule.rule.test(target) !== validateRule.match,
     );
 
-    return invalidateRules.length > 0 ? invalidateRule[0] : null;
+    return invalidateRules.length > 0 ? invalidateRules[0] : null;
   };
 
   addValidateRule = (rule) => {
@@ -38,7 +38,7 @@ export default class CoreField {
   }
 
   get value() {
-    return this.data.id;
+    return this.data.text || '';
   }
 
   render = (append = false) => {

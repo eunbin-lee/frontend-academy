@@ -1,23 +1,32 @@
-export const RequireRule = {
-  rule: /.+/,
-  match: true,
-  message: '필수 입력 항목입니다.',
-};
+import Store from './store';
+import Login from './page/login';
+import Profile from './page/profile';
+import PageNotFound from './page/page-not-found';
 
-export const CantContainWhitespace = {
-  rule: /\s/,
-  match: false,
-  message: '공백을 포함할 수 없습니다.',
-};
+const store = new Store();
 
-export const CantStartNumber = {
-  rule: /^\d/,
-  match: false,
-  message: '숫자로 시작하는 아이디는 사용할 수 없습니다.',
-};
+function router() {
+  const path = location.hash;
 
-export const MinimumLengthLimit = (limit) => ({
-  rule: new RegExp(`(.){${limit}}`),
-  match: true,
-  message: `최소한 ${limit}글자 이상이어야 합니다.`,
-});
+  switch (path) {
+    case '':
+    case '#/login':
+      const login = new Login('#root', {
+        store,
+        title: 'JS & TS Essential',
+      });
+      login.render();
+      break;
+    case '#/profile':
+      const profile = new Profile('#root', { store });
+      profile.render();
+      break;
+    default:
+      const pageNotFound = new PageNotFound('#root');
+      pageNotFound.render();
+      break;
+  }
+}
+
+window.addEventListener('hashchange', router);
+document.addEventListener('DOMContentLoaded', router);
