@@ -11,7 +11,7 @@ const defaultOptions = {
  */
 class Chart {
   #template = template;
-  #el;
+  #el; // element의 약자로 DOM을 직접 선택해서 넣어 놓은 속성
   #percent;
   #duration;
   #label;
@@ -37,6 +37,7 @@ class Chart {
     this.#el = document.querySelector(container);
   }
 
+  // 다양한 형태의 인터페이스를 제공해야 하기 때문에 setter 함수 사용
   /**
    * 퍼센트 설정
    */
